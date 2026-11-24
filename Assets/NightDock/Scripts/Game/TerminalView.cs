@@ -299,7 +299,10 @@ namespace NightDock.Game
                     _doorStatus[i].text = d.Load.Count + "/" + _sim.B.TrailerSpots + "   " + (w / 1000f).ToString("0.0") + "k lb" + (w > _sim.B.TrailerWeightLimit ? "  OVER" : "");
                 }
                 else _doorStatus[i].text = "gone  new trailer " + Mathf.CeilToInt(d.NewTrailerTimer) + " min";
-                _doorHighlights[i].SetActive(i == SelectedDoor);
+                // A selected pallet lights up the doors for its route, and the door text says so.
+                bool match = SelectedPallet >= 0 && _sim.Pallets[SelectedPallet].Route == d.Route && d.TrailerPresent;
+                _doorHighlights[i].SetActive(i == SelectedDoor || match);
+                if (match) _doorStatus[i].text = ">> " + _sim.Pallets[SelectedPallet].Label + " goes here  (key " + (i + 1) + ")";
             }
 
             UpdateForklifts();
