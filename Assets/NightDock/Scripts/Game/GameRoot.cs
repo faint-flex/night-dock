@@ -45,6 +45,11 @@ namespace NightDock.Game
         int _shotIndex;
         readonly float[] _shotMinutes = { 20f, 90f, 200f, 330f, 460f };
         float _botTimer;
+        int _shotShifts = 1;      // -ndshifts N: autopilot plays N shifts (QA uses 3)
+        int _shotShiftsDone;
+        int _frames;
+        float _frameTime;
+        float _worstFrame;
 
         void Awake()
         {
@@ -55,7 +60,10 @@ namespace NightDock.Game
 
             var args = System.Environment.GetCommandLineArgs();
             for (int i = 0; i < args.Length - 1; i++)
+            {
                 if (args[i] == "-ndshots") _shotsDir = args[i + 1];
+                if (args[i] == "-ndshifts" && int.TryParse(args[i + 1], out int n)) _shotShifts = Mathf.Clamp(n, 1, 20);
+            }
 
             if (_shotsDir != null)
             {
@@ -295,6 +303,9 @@ namespace NightDock.Game
         void UpdateShots()
         {
             if (_state != State.Running) return;
+            _frames++;
+            _frameTime += Time.unscaledDeltaTime;
+            if (_frames > 30) _worstFrame = Mathf.Max(_worstFrame, Time.unscaledDeltaTime);
             _botTimer += Time.unscaledDeltaTime;
             if (_botTimer > 0.05f) { _botTimer = 0f; ShiftBot.Think(Sim, true); }
             Sim.Tick(Mathf.Min(Time.unscaledDeltaTime, 0.1f) / B.RealSecondsPerGameMinute * _speed);
@@ -319,16 +330,29 @@ namespace NightDock.Game
         {
             yield return null;
             yield return new WaitForEndOfFrame();
-            Shot("09-report");
+            _shotShiftsDone++;
+            Shot("09-report-shift" + _report.ShiftNumber);
             var r = _report;
             var sb = new StringBuilder();
-            sb.AppendLine("Night Dock screenshot run, shift " + r.ShiftNumber);
-            sb.AppendLine("pallets " + r.TotalPallets + ", on time " + r.OnTime + ", misroutes " + r.Misroutes + ", load order " + r.LoadOrderViolations + ", left behind " + r.LeftBehind);
-            sb.AppendLine("revenue " + r.Revenue + ", penalties " + r.Penalties + ", costs " + r.Costs + ", profit " + r.Profit + ", stars " + r.Stars);
-            sb.AppendLine("fps (last frame) " + (1f / Mathf.Max(Time.unscaledDeltaTime, 1e-4f)).ToString("0"));
-            File.WriteAllText(Path.Combine(_shotsDir, "shots-result.txt"), sb.ToString());
-            yield return new WaitForSecondsRealtime(1.5f);
-            Application.Quit();
+            sb.AppendLine("Night Dock autopilot, shift " + r.ShiftNumber + " (forklifts " + C.Forklifts + ", scanner " + (C.FastScanner ? "yes" : "no") + ", doors " + C.OutboundDoors(B) + ")");
+            sb.AppendLine("  pallets " + r.TotalPallets + ", on time " + r.OnTime + ", misroutes " + r.Misroutes + ", load order " + r.LoadOrderViolations + ", left behind " + r.LeftBehind);
+            sb.AppendLine("  revenue " + r.Revenue + ", penalties " + r.Penalties + ", costs " + r.Costs + ", profit " + r.Profit + ", stars " + r.Stars + ", cash " + C.Cash);
+            sb.AppendLine("  fps average " + (_frames / Mathf.Max(_frameTime, 1e-4f)).ToString("0") + ", worst frame " + (_worstFrame * 1000f).ToString("0.0") + " ms");
+            File.AppendAllText(Path.Combine(_shotsDir, "shots-result.txt"), sb.ToString());
+            _frames = 0; _frameTime = 0f; _worstFrame = 0f;
+            yield return new WaitForSecondsRealtime(1.0f);
+            if (_shotShiftsDone < _shotShifts && !C.Bankrupt)
+            {
+                // Buy what a sensible player would, then run the next shift (exercises save + next shift).
+                if (!C.BuyForklift(B) && !C.BuyScanner(B)) C.BuyDoor(B, 0);
+                SaveSystem.Save(C);
+                StartPlanning();
+                yield return null;
+                StartShift();
+                _speed = 8;
+                _shotIndex = _shotMinutes.Length; // screenshots only during the first shift
+            }
+            else Application.Quit();
         }
 
         void Shot(string name)

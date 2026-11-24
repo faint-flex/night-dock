@@ -28,6 +28,20 @@ namespace NightDock.Game
         static readonly Dictionary<Color, Material> _cache = new Dictionary<Color, Material>();
         static Font _font;
 
+        /// <summary>Text lying flat on the floor; turned each frame so it always reads upright from the camera.</summary>
+        public static readonly List<Transform> FlatLabels = new List<Transform>();
+
+        public static void TurnFlatLabels(float cameraYaw)
+        {
+            var rot = Quaternion.Euler(90f, cameraYaw, 0f);
+            for (int i = FlatLabels.Count - 1; i >= 0; i--)
+            {
+                var t = FlatLabels[i];
+                if (t == null) { FlatLabels.RemoveAt(i); continue; }
+                t.rotation = rot;
+            }
+        }
+
         public static Material Mat(Color c)
         {
             if (_cache.TryGetValue(c, out var m)) return m;
@@ -76,7 +90,11 @@ namespace NightDock.Game
             var go = new GameObject("Label");
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPos;
-            if (faceUp) go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            if (faceUp)
+            {
+                go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                FlatLabels.Add(go.transform);
+            }
             var tm = go.AddComponent<TextMesh>();
             tm.text = text;
             tm.font = Font;

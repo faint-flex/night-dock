@@ -124,7 +124,7 @@ namespace NightDock.Game
                 // Route-coloured apron with the door's letter and number painted on it.
                 var apron = Look.Box("Apron " + door.Name, root, Layout.OutboundApron(i) + new Vector3(0f, 0.02f, 0f), new Vector3(Layout.DoorWidth, 0.02f, 3.6f), Look.RouteColors[door.Route]);
                 Look.Label(door.Name + " " + Routes.Letters[door.Route], root, Layout.OutboundApron(i) + new Vector3(0f, 0.06f, -0.4f), 1.6f, Color.black);
-                var status = Look.Label("", root, Layout.OutboundApron(i) + new Vector3(0f, 0.06f, -3.0f), 0.9f, Color.white);
+                var status = Look.Label("", root, Layout.OutboundApron(i) + new Vector3(0f, 0.06f, -3.0f), 1.3f, Color.white);
                 _doorStatus.Add(status);
 
                 var hl = Look.Box("DoorSelect", root, Layout.OutboundApron(i) + new Vector3(0f, 0.01f, 3f), new Vector3(Layout.DoorWidth + 1.2f, 0.02f, 11f), Look.Select);
@@ -143,7 +143,7 @@ namespace NightDock.Game
             {
                 Look.Box("InApron", root, Layout.InboundApron(i) + new Vector3(0f, 0.02f, 0f), new Vector3(Layout.DoorWidth, 0.02f, 3.6f), new Color(0.5f, 0.52f, 0.55f));
                 Look.Label("I" + (i + 1), root, Layout.InboundApron(i) + new Vector3(0f, 0.06f, 0.3f), 1.6f, Color.black);
-                _inboundDoorStatus.Add(Look.Label("", root, Layout.InboundApron(i) + new Vector3(0f, 0.06f, 3.0f), 0.8f, Color.white));
+                _inboundDoorStatus.Add(Look.Label("", root, Layout.InboundApron(i) + new Vector3(0f, 0.06f, 3.0f), 1.2f, Color.white));
             }
             Look.Label("YARD", root, Layout.YardPos(0) + new Vector3(-5f, 0.06f, 0f), 2f, new Color(0.7f, 0.7f, 0.7f));
         }
@@ -303,6 +303,8 @@ namespace NightDock.Game
             }
 
             UpdateForklifts();
+            var cam = Camera.main;
+            if (cam != null) Look.TurnFlatLabels(cam.transform.eulerAngles.y);
 
             for (int i = 0; i < _sim.Pallets.Count; i++)
             {
