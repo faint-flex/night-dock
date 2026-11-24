@@ -376,7 +376,7 @@ namespace NightDock.Game
             _small = new GUIStyle(_body) { fontSize = 16 };
             _panel = new GUIStyle(GUI.skin.box);
             var bg = new Texture2D(1, 1);
-            bg.SetPixel(0, 0, new Color(0.06f, 0.07f, 0.1f, 0.88f));
+            bg.SetPixel(0, 0, new Color(0.06f, 0.07f, 0.1f, 0.97f));
             bg.Apply();
             _panel.normal.background = bg;
             _btn = new GUIStyle(GUI.skin.button) { fontSize = 18, padding = new RectOffset(10, 10, 6, 6) };
@@ -478,7 +478,7 @@ namespace NightDock.Game
                 "<b>" + ShiftSim.ClockText(Sim.Minute) + "</b>   " + status + "    Shift " + Sim.ShiftNumber +
                 "    Delivered " + Sim.PalletsDelivered + "/" + Sim.Pallets.Count +
                 "    Forklifts busy " + busy + "/" + Sim.Forklifts.Length + "    Queue " + Sim.Queue.Count +
-                "    Staging " + (B.StagingSlots - Sim.FreeStagingSlots()) + "/" + B.StagingSlots, _body);
+                "    Staging " + StagedCount() + "/" + B.StagingSlots, _body);
             float bx = top.xMax - 360f;
             if (GUI.Button(new Rect(bx, top.y + 8f, 110f, 38f), _paused ? "Resume" : "Pause", _btn)) _paused = !_paused;
             if (GUI.Button(new Rect(bx + 118f, top.y + 8f, 110f, 38f), _speed == 1 ? "Fast" : "Normal", _btn)) _speed = _speed == 1 ? 2 : 1;
@@ -499,8 +499,15 @@ namespace NightDock.Game
             if (AllFreightHandled())
             {
                 var r = Panel(new Rect(W / 2f - 200f, 80f, 400f, 70f));
-                if (GUI.Button(new Rect(r.x + 12f, r.y + 10f, r.width - 24f, 50f), "All freight handled: close out shift", _btn)) Sim.EndShift();
+                if (GUI.Button(new Rect(r.x + 12f, r.y + 10f, r.width - 24f, 50f), "Everything is loaded: send all trucks and end shift", _btn)) Sim.EndShift();
             }
+        }
+
+        int StagedCount()
+        {
+            int n = 0;
+            foreach (int id in Sim.Staging) if (id >= 0) n++;
+            return n;
         }
 
         bool AllFreightHandled()

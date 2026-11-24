@@ -196,7 +196,7 @@ namespace NightDock.Game
             // Tractor at the nose end.
             float cabZ = inbound ? -L / 2f - 2f : L / 2f + 2f;
             Look.Box("Cab", t.transform, new Vector3(0f, 1.4f, cabZ), new Vector3(W, 2.6f, 2.8f), new Color(0.15f, 0.2f, 0.3f));
-            Look.Label(label, t.transform, new Vector3(0f, 2.85f, noseZ * 0.92f), 0.8f, Color.black);
+            Look.Label(label, t.transform, new Vector3(0f, 2.85f, noseZ * 0.92f), 1.0f, Color.black, true, false);
             return t;
         }
 
@@ -212,7 +212,7 @@ namespace NightDock.Game
             var col = go.AddComponent<BoxCollider>();
             col.size = s;
             go.AddComponent<PalletTag>().Id = p.Id;
-            var label = Look.Label(p.Label, go.transform, new Vector3(0f, -s.y / 2f + 0.16f + hgt, 0f), 0.9f, Color.black);
+            var label = Look.Label(p.Label, go.transform, new Vector3(0f, -s.y / 2f + 0.16f + hgt, 0f), 1.15f, Color.black);
             var sel = Look.Box("Select", go.transform, new Vector3(0f, -s.y / 2f + 0.03f, 0f), new Vector3(s.x + 0.5f, 0.04f, s.z + 0.5f), Look.Select);
             sel.SetActive(false);
             go.SetActive(false);

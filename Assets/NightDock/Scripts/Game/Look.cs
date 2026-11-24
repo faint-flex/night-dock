@@ -85,7 +85,7 @@ namespace NightDock.Game
         }
 
         /// <summary>World-space text. faceUp = lies flat for a top-down camera.</summary>
-        public static TextMesh Label(string text, Transform parent, Vector3 localPos, float size, Color c, bool faceUp = true)
+        public static TextMesh Label(string text, Transform parent, Vector3 localPos, float size, Color c, bool faceUp = true, bool turnToCamera = true)
         {
             var go = new GameObject("Label");
             go.transform.SetParent(parent, false);
@@ -93,7 +93,7 @@ namespace NightDock.Game
             if (faceUp)
             {
                 go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                FlatLabels.Add(go.transform);
+                if (turnToCamera) FlatLabels.Add(go.transform);
             }
             var tm = go.AddComponent<TextMesh>();
             tm.text = text;
